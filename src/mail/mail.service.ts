@@ -25,7 +25,7 @@ export class MailService {
     console.log(url, " (Admin)");
     await this.mailerService.sendMail({
       to: user.email,
-      subject: "Welcome to Stadium App! Confirm your email",
+      subject: "Welcome Admin! Confirm your email",
       template: "confirmation",
       context: {
         name: user.email,
