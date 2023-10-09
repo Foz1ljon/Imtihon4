@@ -19,6 +19,8 @@ import { Admin } from "./model/admin.model";
 import { LoginAdminDto } from "./dto/login-admin.dto";
 import { FindAdminDto } from "./dto/find-admin.dto";
 import { Op } from "sequelize";
+import { AddRoleDto } from "./dto/addrole-dto";
+import { Role } from "../role/models/role.models";
 
 @Injectable()
 export class AdminService {
@@ -32,6 +34,7 @@ export class AdminService {
       id: admin.id,
       active: admin.active,
       is_owner: admin.is_owner,
+      roles: admin.roles,
     };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -57,7 +60,8 @@ export class AdminService {
     const user1 = await this.adminRepo.findOne({
       where: { username: createAdminDto.username },
     });
-    if (user || user1) throw new BadRequestException("Email or Username already registered");
+    if (user || user1)
+      throw new BadRequestException("Email or Username already registered");
     if (createAdminDto.password !== createAdminDto.confirm_password)
       throw new BadRequestException("Passport is not match");
 
@@ -66,7 +70,14 @@ export class AdminService {
       ...createAdminDto,
       password: hashed_password,
     });
+    const role = await Role.findOne({ where: { value: "ADMIN" } });
 
+    if (!role) {
+      throw new BadRequestException("Role not found");
+    }
+    await newUser.$set("roles", [role.id]);
+    await newUser.save();
+    newUser.roles = [role];
     const tokens = await this.getToken(newUser);
     const hashed_refresh_token = await bcrypt.hash(tokens.refresh_token, 7);
     const uniqueKey: string = v4();
@@ -236,5 +247,30 @@ export class AdminService {
     });
 
     return data[1][0];
+  }
+
+  async addRole(addRoleDto: AddRoleDto) {
+    const user = await Admin.findByPk(addRoleDto.admin_id);
+    const role = await Role.findOne({ where: { value: addRoleDto.value } });
+    if (role && user) {
+      await user.$add("roles", role.id);
+      const updated = await this.adminRepo.findByPk(addRoleDto.admin_id, {
+        include: { all: true },
+      });
+      return updated;
+    }
+    throw new HttpException("User or role not found", HttpStatus.NOT_FOUND);
+  }
+  async removeRole(addRoleDto: AddRoleDto) {
+    const user = await Admin.findByPk(addRoleDto.admin_id);
+    const role = await Role.findOne({ where: { value: addRoleDto.value } });
+    if (role && user) {
+      await user.$remove("roles", role.id);
+      const updated = await this.adminRepo.findByPk(addRoleDto.admin_id, {
+        include: { all: true },
+      });
+      return updated;
+    }
+    throw new HttpException("User or role not found", HttpStatus.NOT_FOUND);
   }
 }

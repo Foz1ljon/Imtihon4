@@ -1,6 +1,9 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { CreateHistoryDto } from "./dto/create-history.dto";
-import { UpdateHistoryDto } from "./dto/update-history.dto";
 import { Purchase } from "../purchase/models/purchase.model";
 import { InjectModel } from "@nestjs/sequelize";
 import { History } from "./models/history.model";
@@ -19,13 +22,12 @@ export class HistoryService {
       where: { id: createHistoryDto.purchase_id, customer_id: req["id"] },
     });
     if (!purchase) throw new NotFoundException("Purchase not found");
-    createHistoryDto.customer_id = req["id"];
 
-    let residuals = purchase.total_amount - createHistoryDto.payment;
+    const data = await History.findOne({ where: { customer_id: req["id"] } });
 
     return this.historyRepo.create({
       ...createHistoryDto,
-      residual: residuals,
+      customer_id: req["id"],
     });
   }
 

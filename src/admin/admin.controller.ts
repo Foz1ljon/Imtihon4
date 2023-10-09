@@ -5,7 +5,6 @@ import {
   Body,
   Put,
   Param,
-
   Res,
   HttpCode,
   HttpStatus,
@@ -15,19 +14,28 @@ import { AdminService } from "./admin.service";
 import { CreateAdminDto } from "./dto/create-admin.dto";
 import { UpdateAdminDto } from "./dto/update-admin.dto";
 import { Response } from "express";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 import { Admin } from "./model/admin.model";
 import { LoginAdminDto } from "./dto/login-admin.dto";
 import { CookieGetter } from "../decorators/cookieGetter.decorator";
 import { FindAdminDto } from "./dto/find-admin.dto";
 import { CreatorGuard } from "../guards/creator.guard";
+import { Roles } from "../decorators/roles-auth.decorator";
+import { RolesGuard } from "../guards/role.guard";
+import { AddRoleDto } from "./dto/addrole-dto";
 
 @ApiTags("Admins")
 @Controller("admin")
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
   @ApiOperation({ summary: "register Customer" })
-  // @UseGuards(CreatorGuard)
+  @UseGuards(CreatorGuard)
   @Post("signup")
   create(
     @Body() createAdminDto: CreateAdminDto,
@@ -53,8 +61,12 @@ export class AdminController {
   }
 
   @ApiOperation({ summary: "logout admin" })
+  @ApiBearerAuth()
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer token",
+  })
   @ApiResponse({ status: 200, type: Admin })
-/*   @UseGuards(AdminGuard) */
   @HttpCode(HttpStatus.OK)
   @Post("signout")
   logout(
@@ -65,8 +77,12 @@ export class AdminController {
   }
 
   @ApiOperation({ summary: "Refresh token" })
+  @ApiBearerAuth()
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer token",
+  })
   @Post(":id/refresh")
-/*   @UseGuards(AdminGuard) */
   refresh(
     @Param("id") id: string,
     @CookieGetter("refresh_token") refreshToken: string,
@@ -75,8 +91,14 @@ export class AdminController {
     return this.adminService.refreshToken(+id, refreshToken, res);
   }
 
-  @UseGuards(CreatorGuard)
   @ApiOperation({ summary: "Search Admin" })
+  @ApiBearerAuth()
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer token",
+  })
+  @Roles("SUPERADMIN")
+  @UseGuards(RolesGuard)
   @Post("find")
   findAll(
     @Body() findAdminDto: FindAdminDto,
@@ -87,9 +109,33 @@ export class AdminController {
   }
 
   @ApiOperation({ summary: "Edit Admin Value by ID" })
- /*  @UseGuards(CreatorGuard) */
+  @ApiBearerAuth()
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer token",
+  })
+  @Roles("ADMIN")
+  @UseGuards(RolesGuard)
   @Put(":id")
   updateAdmin(@Param("id") id: string, updateAdminDto: UpdateAdminDto) {
     return this.adminService.updateAdminById(+id, updateAdminDto);
+  }
+
+  @ApiOperation({ summary: "Add Role" })
+  @Roles("ADMIN")
+  @UseGuards(RolesGuard)
+  @HttpCode(200)
+  @Post("add_role")
+  AddRole(@Body() addRoleDto: AddRoleDto) {
+    return this.adminService.addRole(addRoleDto);
+  }
+
+  @ApiOperation({ summary: "Remove Role" })
+  @Roles("ADMIN")
+  @UseGuards(RolesGuard)
+  @HttpCode(200)
+  @Post("remove_role")
+  RemoveRole(@Body() addRoleDto: AddRoleDto) {
+    return this.adminService.removeRole(addRoleDto);
   }
 }

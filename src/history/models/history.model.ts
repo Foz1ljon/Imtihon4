@@ -13,9 +13,7 @@ import { Purchase } from "../../purchase/models/purchase.model";
 interface CreateHistoryAttr {
   customer_id: number;
   purchase_id: number;
-  payment: number;
   pay_type: string;
-  residual: number;
 }
 
 @Table({ tableName: "histories" })
@@ -34,15 +32,9 @@ export class History extends Model<History, CreateHistoryAttr> {
   @Column({ type: DataType.INTEGER, allowNull: false })
   purchase_id: number;
 
-  @ApiProperty({ example: "10000", description: "Payment Summa" })
-  @Column({ type: DataType.INTEGER, allowNull: false })
-  payment: number;
-
   @ApiProperty({ example: "card", description: "Payment type" })
   @Column({ type: DataType.ENUM("card", "cash"), allowNull: false })
   pay_type: "card" | "cash";
-  @Column({ type: DataType.FLOAT, allowNull: false })
-  residual: number;
 
   @BelongsTo(() => Customer)
   customer: Customer;

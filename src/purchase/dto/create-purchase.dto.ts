@@ -6,16 +6,9 @@ export class CreatePurchaseDto {
   @IsNumberString()
   customer_id: number;
 
-  @ApiProperty({ example: "1", description: "Admin ID" })
-  admin_id: number;
-
   @ApiProperty({ example: "1", description: "product ID" })
   @IsNumberString()
   product_id: number;
-
-  @ApiProperty({ example: "40000", description: "All Sum" })
-  @IsNumberString()
-  total_amount: number;
 
   @ApiProperty({ example: "5", description: "Percent" })
   @IsNumberString()
@@ -27,9 +20,7 @@ export class CreatePurchaseDto {
 
   @ApiProperty({ example: "06", description: "Payment Date Number" })
   @IsNumberString()
-  paymentDate: number;
+  paymentDay: number;
 
-  @ApiProperty({ example: "545777", description: "Payment in Month" })
-  @IsNumberString()
-  paymentMonth: number;
+ 
 }

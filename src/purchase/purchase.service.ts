@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreatePurchaseDto } from "./dto/create-purchase.dto";
 import { UpdatePurchaseDto } from "./dto/update-purchase.dto";
-import { Customer } from "../customers/model/customer.model";
 import { InjectModel } from "@nestjs/sequelize";
 import { Purchase } from "./models/purchase.model";
 import { Product } from "../product/model/product.model";
 import { StatusTrueDto } from "./dto/status-purchase.dto";
 import { JwtService } from "@nestjs/jwt";
+import { Basket } from "../basket/models/basket.model";
 
 @Injectable()
 export class PurchaseService {
@@ -16,20 +16,32 @@ export class PurchaseService {
   ) {}
   async create(createPurchaseDto: CreatePurchaseDto, refreshToken: string) {
     const req = this.jwtService.decode(refreshToken);
+    const basket = await Basket.findOne({
+      where: {
+        customer_id: createPurchaseDto.customer_id,
+        product_id: createPurchaseDto.product_id,
+      },
+    });
 
-    const customerId = await Customer.findByPk(createPurchaseDto.customer_id);
     const productId = await Product.findByPk(createPurchaseDto.product_id);
-    if (!customerId || !productId)
+    if (!basket || !productId)
       throw new NotFoundException("Customer or Product not found");
-    createPurchaseDto.admin_id = req["id"];
+
     let price = productId.price;
     /* Calculate total Amount */
-    createPurchaseDto.total_amount =
-      price + (price / 100) * createPurchaseDto.interest_rate;
+    let totalAmount = price + (price / 100) * createPurchaseDto.interest_rate;
     /* Calculate Payment In Month */
-    createPurchaseDto.paymentMonth =
-      createPurchaseDto.total_amount / createPurchaseDto.installmentDuration;
-    this.purchaseRepo.create(createPurchaseDto);
+    let payMonth = totalAmount / createPurchaseDto.installmentDuration;
+
+    await Basket.destroy({
+      where: { customer_id: basket.id, product_id: productId.id },
+    });
+    return this.purchaseRepo.create({
+      ...createPurchaseDto,
+      admin_id: req["id"],
+      total_amount: totalAmount,
+      paymentMonth: payMonth,
+    });
   }
 
   findAll() {
@@ -37,7 +49,7 @@ export class PurchaseService {
   }
 
   findById(id: number) {
-    return this.purchaseRepo.findByPk(id);
+    return this.purchaseRepo.findByPk(id, { include: { all: true } });
   }
 
   async update(
@@ -46,12 +58,16 @@ export class PurchaseService {
     refreshToken: string,
   ) {
     const req = this.jwtService.decode(refreshToken);
-
-    updatePurchaseDto.admin_id = req["id"];
-    const data = await this.purchaseRepo.update(updatePurchaseDto, {
-      where: { id },
-      returning: true,
-    });
+    const data = await this.purchaseRepo.update(
+      {
+        ...updatePurchaseDto,
+        admin_id: req["id"],
+      },
+      {
+        where: { id },
+        returning: true,
+      },
+    );
     return data[1][0];
   }
 

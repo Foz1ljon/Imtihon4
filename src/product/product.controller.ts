@@ -15,15 +15,27 @@ import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { FindProductDto } from "./dto/find-product.dt";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { AdminGuard } from "../guards/Auth.guard";
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
+import { Roles } from "../decorators/roles-auth.decorator";
+import { RolesGuard } from "../guards/role.guard";
 @ApiTags("Products")
 @Controller("product")
+@ApiBearerAuth()
+@ApiHeader({
+  name: "Authorization",
+  description: "Bearer token",
+})
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
   @ApiOperation({ summary: "Create a new Product" })
   @Post()
-  @UseGuards(AdminGuard)
+  @Roles("ADMIN")
+  @UseGuards(RolesGuard)
   @UseInterceptors(FileInterceptor("image"))
   async create(
     @Body() createProductDto: CreateProductDto,
@@ -45,7 +57,8 @@ export class ProductController {
   }
 
   @ApiOperation({ summary: "Update Product by ID" })
-  @UseGuards(AdminGuard)
+  @Roles("ADMIN")
+  @UseGuards(RolesGuard)
   @Put(":id")
   @UseInterceptors(FileInterceptor("image"))
   update(
@@ -57,7 +70,8 @@ export class ProductController {
   }
 
   @ApiOperation({ summary: "Remove Product by ID" })
-  @UseGuards(AdminGuard)
+  @Roles("ADMIN")
+  @UseGuards(RolesGuard)
   @Delete(":id")
   remove(@Param("id") id: string) {
     return this.productService.remove(+id);

@@ -9,12 +9,23 @@ import {
 } from "@nestjs/common";
 import { HistoryService } from "./history.service";
 import { CreateHistoryDto } from "./dto/create-history.dto";
-import { UpdateHistoryDto } from "./dto/update-history.dto";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { AdminGuard, CustomerGuard } from "../guards/Auth.guard";
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
+import { CustomerGuard } from "../guards/Auth.guard";
 import { CookieGetter } from "../decorators/cookieGetter.decorator";
+import { Roles } from "../decorators/roles-auth.decorator";
+import { RolesGuard } from "../guards/role.guard";
 @ApiTags("Histories")
 @Controller("history")
+@ApiBearerAuth()
+@ApiHeader({
+  name: "Authorization",
+  description: "Bearer token",
+})
 export class HistoryController {
   constructor(private readonly historyService: HistoryService) {}
   @ApiOperation({ summary: "Get all my history" })
@@ -30,10 +41,11 @@ export class HistoryController {
   @ApiOperation({ summary: "Get all my history" })
   @UseGuards(CustomerGuard)
   @Get()
-  findAll( @CookieGetter("refresh_token") refreshToken: string,) {
+  findAll(@CookieGetter("refresh_token") refreshToken: string) {
     return this.historyService.findAll(refreshToken);
   }
-  @UseGuards(AdminGuard)
+  @Roles("VENDOR", "ADMIN")
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Get all  history" })
   @Get("all")
   findAllCustomer() {
@@ -45,7 +57,8 @@ export class HistoryController {
     return this.historyService.findById(+id);
   }
 
-  @UseGuards(AdminGuard)
+  @Roles("VENDOR", "ADMIN")
+  @UseGuards(RolesGuard)
   @Delete(":id")
   remove(@Param("id") id: string) {
     return this.historyService.remove(+id);

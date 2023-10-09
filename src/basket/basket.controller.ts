@@ -7,16 +7,25 @@ import {
   Param,
   Delete,
   Put,
-  Res,
 } from "@nestjs/common";
 import { BasketService } from "./basket.service";
 import { CreateBasketDto } from "./dto/create-basket.dto";
 import { UpdateBasketDto } from "./dto/update-basket.dto";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 import { CustomerGuard } from "../guards/Auth.guard";
 import { CookieGetter } from "../decorators/cookieGetter.decorator";
 @ApiTags("basketS")
 @Controller("basket")
+@ApiBearerAuth()
+@ApiHeader({
+  name: "Authorization",
+  description: "Bearer token",
+})
 export class BasketController {
   constructor(private readonly basketService: BasketService) {}
 
@@ -30,15 +39,15 @@ export class BasketController {
     return this.basketService.create(createBasketDto, refreshToken);
   }
 
-  @UseGuards(CustomerGuard)
   @ApiOperation({ summary: "get all basket" })
+  @UseGuards(CustomerGuard)
   @Get()
   findAll(@CookieGetter("refresh_token") refreshToken: string) {
     return this.basketService.findAll(refreshToken);
   }
 
-  @UseGuards(CustomerGuard)
   @ApiOperation({ summary: "get basket by ID" })
+  @UseGuards(CustomerGuard)
   @Get(":id")
   findOne(
     @Param("id") id: string,
@@ -47,8 +56,8 @@ export class BasketController {
     return this.basketService.findById(+id, refreshToken);
   }
 
-  @UseGuards(CustomerGuard)
   @ApiOperation({ summary: "update basket by ID" })
+  @UseGuards(CustomerGuard)
   @Put(":id")
   update(
     @Param("id") id: string,
@@ -58,8 +67,8 @@ export class BasketController {
     return this.basketService.update(+id, updateBasketDto, refreshToken);
   }
 
-  @UseGuards(CustomerGuard)
   @ApiOperation({ summary: "remove basket by ID" })
+  @UseGuards(CustomerGuard)
   @Delete(":id")
   remove(
     @Param("id") id: string,

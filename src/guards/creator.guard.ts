@@ -21,17 +21,19 @@ export class CreatorGuard implements CanActivate {
       if (bearer !== "Bearer" || !token)
         throw new UnauthorizedException("User unauthorized");
 
-      async function verify(token: string, jwtService: JwtService) {
-        const user: Partial<Admin> = await jwtService.verify(token, {
+      try {
+        const user: Partial<Admin> = await this.jwtService.verify(token, {
           secret: process.env.accesstokenkey,
         });
+
         if (!user) throw new UnauthorizedException("Invalid token provided");
-        if (!user.is_owner)
-          throw new UnauthorizedException("Permission denied");
+        if (!user.active || !user.is_owner)
+          throw new UnauthorizedException("User is not active");
 
         return true;
+      } catch (error) {
+        throw new UnauthorizedException("Invalid token provided");
       }
-      return verify(token, this.jwtService);
     } catch (error) {
       throw new UnauthorizedException("Invalid token provided");
     }

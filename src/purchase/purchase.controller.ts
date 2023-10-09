@@ -11,16 +11,28 @@ import {
 import { PurchaseService } from "./purchase.service";
 import { CreatePurchaseDto } from "./dto/create-purchase.dto";
 import { UpdatePurchaseDto } from "./dto/update-purchase.dto";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 import { StatusTrueDto } from "./dto/status-purchase.dto";
-import { AdminGuard } from "../guards/Auth.guard";
 import { CookieGetter } from "../decorators/cookieGetter.decorator";
+import { RolesGuard } from "../guards/role.guard";
+import { Roles } from "../decorators/roles-auth.decorator";
 @ApiTags("Purchases")
 @Controller("purchase")
+@ApiBearerAuth()
+@ApiHeader({
+  name: "Authorization",
+  description: "Bearer token",
+})
 export class PurchaseController {
   constructor(private readonly purchaseService: PurchaseService) {}
   @ApiOperation({ summary: "Add purchase" })
-  @UseGuards(AdminGuard)
+  @Roles("VENDOR")
+  @UseGuards(RolesGuard)
   @Post()
   create(
     @Body() createPurchaseDto: CreatePurchaseDto,
@@ -29,20 +41,23 @@ export class PurchaseController {
     return this.purchaseService.create(createPurchaseDto, refreshToken);
   }
   @ApiOperation({ summary: "Add purchase" })
-  @UseGuards(AdminGuard)
+  @Roles("VENDOR")
+  @UseGuards(RolesGuard)
   @Get()
   findAll() {
     return this.purchaseService.findAll();
   }
   @ApiOperation({ summary: "Get purchase by ID" })
-  @UseGuards(AdminGuard)
+  @Roles("VENDOR")
+  @UseGuards(RolesGuard)
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.purchaseService.findById(+id);
   }
 
   @ApiOperation({ summary: "Update purchase by ID" })
-  @UseGuards(AdminGuard)
+  @Roles("VENDOR")
+  @UseGuards(RolesGuard)
   @Put(":id")
   update(
     @Param("id") id: string,
@@ -53,7 +68,8 @@ export class PurchaseController {
   }
 
   @ApiOperation({ summary: "Deactive purchase by ID" })
-  @UseGuards(AdminGuard)
+  @Roles("VENDOR")
+  @UseGuards(RolesGuard)
   @Delete(":id")
   remove(@Param("id") id: string, statusTrueDto: StatusTrueDto) {
     return this.purchaseService.remove(+id, statusTrueDto);

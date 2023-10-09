@@ -18,6 +18,9 @@ import { Basket } from "./basket/models/basket.model";
 import { Purchase } from "./purchase/models/purchase.model";
 import { HistoryModule } from "./history/history.module";
 import { History } from "./history/models/history.model";
+import { Role } from "./role/models/role.models";
+import { AdminRole } from "./role/models/admin-roles.model";
+import { RoleModule } from "./role/role.module";
 
 const { env } = process;
 @Module({
@@ -35,7 +38,17 @@ const { env } = process;
       password: String(env.db_password),
       database: env.db_dbname,
       /* Models */
-      models: [Customer, Admin, Category, Product, Basket, Purchase, History],
+      models: [
+        Customer,
+        Admin,
+        Category,
+        Product,
+        Basket,
+        Purchase,
+        History,
+        Role,
+        AdminRole,
+      ],
       /* Models */
       autoLoadModels: true,
       logging: false,
@@ -49,6 +62,7 @@ const { env } = process;
     BasketModule,
     PurchaseModule,
     HistoryModule,
+    RoleModule,
   ],
 })
 export class AppModule {}

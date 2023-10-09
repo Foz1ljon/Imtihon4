@@ -5,9 +5,10 @@ import { SequelizeModule } from "@nestjs/sequelize";
 import { Basket } from "./models/basket.model";
 import { Customer } from "../customers/model/customer.model";
 import { JwtModule } from "@nestjs/jwt";
+import { Product } from "../product/model/product.model";
 
 @Module({
-  imports: [SequelizeModule.forFeature([Basket, Customer]),JwtModule],
+  imports: [SequelizeModule.forFeature([Basket, Customer, Product]),JwtModule],
   controllers: [BasketController],
   providers: [BasketService],
 })

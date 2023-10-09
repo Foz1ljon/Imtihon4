@@ -18,7 +18,7 @@ interface CreatePurchaseAttr {
   total_amount: number;
   interest_rate: number;
   installmentDuration: number;
-  paymentDate: number;
+  paymentDay: number;
   paymentMonth: number;
 }
 @Table({ tableName: "purchases", timestamps: false })
@@ -60,7 +60,7 @@ export class Purchase extends Model<Purchase, CreatePurchaseAttr> {
 
   @ApiProperty({ example: "06", description: "Payment Date Number" })
   @Column({ type: DataType.SMALLINT, allowNull: false })
-  paymentDay: Date;
+  paymentDay: number;
 
   @ApiProperty({ example: "50000", description: "Payment in month" })
   @Column({ type: DataType.FLOAT, allowNull: false })
@@ -71,7 +71,7 @@ export class Purchase extends Model<Purchase, CreatePurchaseAttr> {
   status: boolean;
 
   @BelongsTo(() => Customer)
-  customer: Customer;
+  Customer: Customer;
 
   @BelongsTo(() => Admin)
   admin: Admin;

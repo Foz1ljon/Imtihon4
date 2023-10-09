@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { CreateBasketDto } from "./dto/create-basket.dto";
 import { UpdateBasketDto } from "./dto/update-basket.dto";
 import { InjectModel } from "@nestjs/sequelize";
@@ -15,6 +19,8 @@ export class BasketService {
   async create(createBasketDto: CreateBasketDto, refreshToken: string) {
     const productId = await Product.findByPk(createBasketDto.product_id);
     if (!productId) throw new NotFoundException(" Product not found");
+    const findBasket = await Basket.findByPk(createBasketDto.product_id);
+    if (!findBasket) throw new BadRequestException("Product already exists");
     const decodedToken = this.jwtService.decode(refreshToken);
 
     return this.basketRepo.create({

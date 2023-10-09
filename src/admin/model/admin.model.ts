@@ -6,6 +6,8 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
+import { Role } from "../../role/models/role.models";
+import { AdminRole } from "../../role/models/admin-roles.model";
 
 interface CreateAdminAttr {
   username: string;
@@ -47,5 +49,7 @@ export class Admin extends Model<Admin, CreateAdminAttr> {
   @Column({ type: DataType.STRING })
   activation_link: string;
 
-
+  @ApiProperty({ example: ["Roles"], description: "Admin roles" })
+  @BelongsToMany(() => Role, () => AdminRole)
+  roles: Role[];
 }

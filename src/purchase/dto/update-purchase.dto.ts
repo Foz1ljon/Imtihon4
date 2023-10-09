@@ -7,11 +7,6 @@ export class UpdatePurchaseDto {
   @IsNumberString()
   customer_id: number;
 
-  @ApiProperty({ example: "1", description: "Admin ID" })
-  @IsOptional()
-  @IsNumberString()
-  admin_id: number;
-
   @ApiProperty({ example: "1", description: "product ID" })
   @IsOptional()
   @IsNumberString()
@@ -35,5 +30,5 @@ export class UpdatePurchaseDto {
   @ApiProperty({ example: "06", description: "Payment Date Number" })
   @IsOptional()
   @IsNumberString()
-  paymentDate: number;
+  paymentDay: number;
 }
